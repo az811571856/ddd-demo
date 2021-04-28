@@ -1,0 +1,9 @@
+Domain模块是核心业务逻辑的集中地，包含有状态的Entity、领域服务Domain Service、以及各种外部依赖的接口类（如Repository、ACL、中间件等。Domain模块仅依赖Types模块，也是纯POJO。
+
+
+用Entity封装单对象的有状态的行为，包括业务校验
+
+
+用Domain Service封装多对象逻辑：
+Domain Service可以引用外部服务基础设施的Service。
+Domain Service行为的封装的边界考虑的因素之一是业务的内聚性：比如跨货币的转账Service会用到汇率，那么把汇率服务引用进来就是比较好的选择。
