@@ -38,7 +38,7 @@ VO都是Immutable的。
 Value Object更多的是一个非Entity的值对象。
 Domain Primitive是Value Object的进阶版，在原始VO的基础上要求每个DP拥有概念的整体，
 Domain Primitive在VO的Immutable基础上增加了Validity和行为。当然同样的要求无副作用（side-effect free）。
-VO可能也有行为，表达领域粒度相对Domain Primitive较小。
+
 
 ### Data Transfer Object (DTO)
 用于数据传输，属于技术细节的东西，不是业务架构的东西。
@@ -185,6 +185,14 @@ ACL能够提供更多强大的功能：
 应用服务仅仅依赖了一些抽象出来的ACL类和Repository类。
 Application Service、Repository、ACL等我们统称为Application Layer（应用层）。
 
+### Domain Service
+面向领域的业务逻辑。
+可以依赖抽象出来其它服务，存储服务。
+
+### Domain Service 和 Application Service（应用服务）
+后者调用前者来完成服务的编排。
+前者行为定义和后者编排之间的边界是我们要思考的。
+
 ## 重构脚本代码
 1、抽象数据存储层
 对Data Access层做抽象，降低系统对数据库的直接依赖。
@@ -214,4 +222,63 @@ Application Service、Repository、ACL等我们统称为Application Layer（应�
 Domain Layer（领域层）变成核心：Entity、Domain Primitive和Domain Service，这些对象不依赖任何外部服务和框架，而是纯内存中的数据和操作。
 再往外层是负责组件编排的Application Service：Application Service、Repository、ACL等我们统称为Application Layer（应用层）
 最外层是具体实现层（框架，所以统称为Infrastructure Layer（基础设施层））：ACL，Repository等的具体实现，包括Web框架里的对象如Controller之类。
+
+## DDD的六边形架构
+### 代码组织结构
+在Java中我们通过POM Module和POM依赖处理层与层之间的关系。
+### Types模块
+Types是保存Domain Primitives的地方。  
+因为Domain Primitives本身是无状态的，所以可以对外暴露。  
+单独成为模块，被包含在对外的API接口中。  
+Types模块不依赖任何类库，纯POJO。
+
+举例：
+封装数字的账户编号AccountNumber，包含货币单位和数量的Money，包含源和目标货币源货币数量的汇率ExchangeRate。
+以上都是无状态的，初始化后不需要再变更。
+但账户就不属于以上这种，账户里有余额，初始化会再次变更。
+###  Domain模块
+Domain包含Entity、领域服务Domain Service（和其实现）、以及各种外部依赖的接口类（如Repository、ACL、中间件等)。  
+模块内部的子包有：domain(子包有entity,service,service/impl,types),external(里面放的interface),repository(里面放的interface)  
+该模块是核心业务逻辑的集中地。
+Domain模块仅依赖Types模块，也是纯POJO。
+注意一点，Domain Service包括跨Entity的操作，也包含对其它接口类的调用。
+
+### Application模块
+Application Service的包有service和service/impl
+
+### Infrastructure模块
+Infrastructure模块包含了Persistence、Messaging、External等模块。
+Persistence模块包含数据库DAO的实现，包含Data Object、ORM Mapper、Entity到DO的转化类等。
+Persistence模块要依赖具体的ORM类库，比如MyBatis。
+Persistence会依赖Domain模块的。
+
+###  Web模块
+Web模块包含Controller等相关代码。  
+如果用SpringMVC则需要依赖Spring。
+### Start模块
+Start模块是SpringBoot的启动类。
+
+## 测试
+对不同模块的测试。
+Types，Domain模块单元测试。
+Application模块的代码依赖外部抽象类。使用Mock抽象实现的方式依然可以测试。
+Infrastructure模块，每个Infrastructure模块相互独立，变化不大，虽然有IO操作，但一劳永逸。
+Web模块，把Controller依赖的服务类都Mock掉，因为逻辑都在Application Service中，其中的逻辑较少。使用Spring的MockMVC测试，或者通过HttpClient调用接口测试。
+Start模块，写的是集成测试。单元测试都能100%覆盖后，集成测试用来验证整体链路的真实性。
+
+## 代码的演进/变化速度
+DDD中不同模块的代码的演进速度是不一样的：
+* Domain层属于核心业务逻辑
+需求变化代码经常被修改。Entity管理单个对象的变化，Domain Service解决多个对象间的业务逻辑变更。
+* Application层属于Use Case（业务用例）
+业务用例是大方向的需求，业务相对稳定。
+新添加业务用例可以通过新添加接口实现。
+* Infrastructure
+变更比较低频。
+外部依赖的变更频率一般远低于业务逻辑的变更频率。
+
+领域“驱动”的核心思想：越外层的代码越稳定，越内层的代码演进越快。领域就像汽车的发动机。
+
+
+
 
