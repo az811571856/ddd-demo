@@ -3,18 +3,18 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>demo</artifactId>
-        <groupId>com.ddd</groupId>
+        <artifactId>root</artifactId>
+        <groupId>com.demo</groupId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>Infrastructure</artifactId>
+    <artifactId>infrastructure</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>demo-messaging</module>
-        <module>demo-persistence</module>
-        <module>demo-external</module>
+        <module>messaging</module>
+        <module>persistence</module>
+        <module>external</module>
     </modules>
 
 

@@ -1,0 +1,7 @@
+spring:
+  profiles:
+    active: dev
+server:
+  port: ${SERVER_PORT:9011}
+  servlet:
+    context-path: /${spring.application.name}
